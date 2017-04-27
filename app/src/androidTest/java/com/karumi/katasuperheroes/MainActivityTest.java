@@ -26,7 +26,11 @@ import com.karumi.katasuperheroes.model.SuperHero;
 import com.karumi.katasuperheroes.model.SuperHeroesRepository;
 import com.karumi.katasuperheroes.ui.view.MainActivity;
 import it.cosenonjaviste.daggermock.DaggerMockRule;
+
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,11 +38,16 @@ import org.mockito.Mock;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class) @LargeTest public class MainActivityTest {
+
+  public static SuperHero ANY_SUPER_HERO = new SuperHero("_","_",false,"_");
 
   @Rule public DaggerMockRule<MainComponent> daggerRule =
       new DaggerMockRule<>(MainComponent.class, new MainModule()).set(
@@ -65,8 +74,38 @@ import static org.mockito.Mockito.when;
     onView(withText("¯\\_(ツ)_/¯")).check(matches(isDisplayed()));
   }
 
+  @Test public void doNotShowsEmptyCaseIfThereAreSuperHeroes() {
+    givenThereAreSuperHeroes();
+
+    startActivity();
+
+    onView(withText("¯\\_(ツ)_/¯")).check(matches(not(isDisplayed())));
+  }
+
+  @Test public void ShowsNameIfThereAreSuperHeroes() {
+    givenThereAreSuperHeroes();
+
+    startActivity();
+
+    onView(withText(ANY_SUPER_HERO.getName())).check(matches(isDisplayed()));
+  }
+
   private void givenThereAreNoSuperHeroes() {
     when(repository.getAll()).thenReturn(Collections.<SuperHero>emptyList());
+  }
+
+  private void givenThereAreSuperHeroes() {
+    when(repository.getAll()).thenReturn(generateListOfSuperHeroes(1));
+  }
+
+  private List<SuperHero> generateListOfSuperHeroes(int listSize){
+    List<SuperHero> superHeroList = new ArrayList<>();
+    if(listSize > 0){
+      for (int i  = 0 ; i < listSize ; i ++){
+        superHeroList.add(ANY_SUPER_HERO);
+      }
+    }
+    return superHeroList;
   }
 
   private MainActivity startActivity() {
